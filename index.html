@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Hangul Name Lab · Korean Heritage</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2332;
+    --panel2: #243044;
+    --ink: #f2f5f8;
+    --muted: #9aa8b8;
+    --accent: #e85d4c;
+    --accent2: #3d9a7a;
+    --hangul: #ffe08a;
+    --border: #334155;
+    --chip: #2a3a50;
+    --focus: #5b9fd4;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Noto Sans", sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .brand .ko {
+    color: var(--hangul);
+    font-size: clamp(0.95rem, 2vw, 1.2rem);
+    font-weight: 600;
+  }
+  .brand .sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  button, .chip {
+    font: inherit;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--chip);
+    color: var(--ink);
+    padding: 0.55rem 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  button:hover, .chip:hover { background: var(--panel2); border-color: var(--focus); }
+  button:active, .chip:active { transform: scale(0.97); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { filter: brightness(1.08); }
+  button.ghost {
+    background: transparent;
+  }
+  button.toggle-on {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #fff;
+  }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-height: 0;
+  }
+  main.with-chart {
+    grid-template-columns: 1fr minmax(260px, 340px);
+  }
+  @media (max-width: 800px) {
+    main.with-chart { grid-template-columns: 1fr; }
+    .chart-panel { order: 2; max-height: 40vh; }
+  }
+
+  .lab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2rem);
+    gap: 1.25rem;
+    min-height: 0;
+  }
+
+  .input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 720px;
+    justify-content: center;
+    align-items: stretch;
+  }
+  #nameInput {
+    flex: 1 1 280px;
+    min-width: 0;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    padding: 0.85rem 1.2rem;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: var(--panel);
+    color: var(--ink);
+    outline: none;
+    font-weight: 600;
+  }
+  #nameInput:focus {
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px rgba(91, 159, 212, 0.25);
+  }
+  #nameInput::placeholder { color: var(--muted); font-weight: 500; }
+
+  .btn-go, .btn-clear {
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    padding: 0.85rem 1.5rem;
+    border-radius: 16px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    max-width: 720px;
+  }
+  .chip {
+    font-size: 0.95rem;
+    padding: 0.45rem 0.95rem;
+    background: var(--panel);
+  }
+  .chip-label {
+    width: 100%;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: -0.15rem;
+  }
+
+  .output-wrap {
+    width: 100%;
+    max-width: 900px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: clamp(1.5rem, 4vw, 3rem) 1.5rem;
+    text-align: center;
+    min-height: clamp(180px, 32vh, 320px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .output-label {
+    color: var(--muted);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  #hangulOut {
+    font-size: clamp(3.5rem, 14vw, 8rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--hangul);
+    word-break: keep-all;
+    min-height: 1.15em;
+    letter-spacing: 0.02em;
+  }
+  #hangulOut:empty::before {
+    content: "—";
+    color: var(--border);
+  }
+  #latinEcho {
+    color: var(--muted);
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    font-weight: 500;
+    min-height: 1.4em;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.4;
+  }
+
+  .chart-panel {
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    padding: 1rem 1.1rem 1.25rem;
+    overflow-y: auto;
+    display: none;
+  }
+  main.with-chart .chart-panel { display: block; }
+  .chart-panel h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.15rem;
+  }
+  .chart-panel .note {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 0.85rem;
+    line-height: 1.35;
+  }
+  .chart-section { margin-bottom: 1.1rem; }
+  .chart-section h3 {
+    margin: 0 0 0.45rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent2);
+  }
+  .jamo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 0.35rem;
+  }
+  .jamo {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.35rem 0.2rem;
+    text-align: center;
+  }
+  .jamo .big {
+    display: block;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--hangul);
+    line-height: 1.2;
+  }
+  .jamo .rom {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+  .build-demo {
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-top: 0.25rem;
+  }
+  .build-demo strong { color: var(--hangul); font-size: 1.35rem; }
+
+  footer {
+    flex-shrink: 0;
+    padding: 0.5rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Full-screen-ish focus mode for projector: hide chrome slightly */
+  body.present header .sub { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Hangul Name Lab</h1>
+    <span class="ko">한글 이름 실험실</span>
+    <span class="sub">Korean Heritage · phonetic spelling</span>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="ghost" id="btnChart" aria-pressed="false">Show chart</button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="lab" aria-label="Name transliterator">
+    <div class="input-row">
+      <input
+        id="nameInput"
+        type="text"
+        inputmode="text"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Type a first name…"
+        aria-label="English first name"
+      />
+      <button type="button" class="primary btn-go" id="btnGo">Show Hangul</button>
+      <button type="button" class="btn-clear" id="btnClear">Clear</button>
+    </div>
+
+    <div class="chips" role="group" aria-label="Demo names">
+      <span class="chip-label">Try a demo name:</span>
+      <button type="button" class="chip" data-name="Eric">Eric</button>
+      <button type="button" class="chip" data-name="Owen">Owen</button>
+      <button type="button" class="chip" data-name="Mia">Mia</button>
+      <button type="button" class="chip" data-name="Noah">Noah</button>
+      <button type="button" class="chip" data-name="Sofia">Sofia</button>
+    </div>
+
+    <div class="output-wrap" aria-live="polite">
+      <div class="output-label">Your name in Hangul</div>
+      <div id="hangulOut"></div>
+      <div id="latinEcho"></div>
+    </div>
+
+    <p class="hint">
+      This is a <strong>sound spelling</strong> — how your name might be written with Korean letters — not a Korean meaning-name.
+    </p>
+  </section>
+
+  <aside class="chart-panel" id="chartPanel" aria-label="Hangul chart">
+    <h2>Hangul building blocks</h2>
+    <p class="note">Letters stack into syllable blocks. Example: <strong style="color:var(--hangul)">ㅎ</strong> + <strong style="color:var(--hangul)">ㅏ</strong> + <strong style="color:var(--hangul)">ㄴ</strong> → <strong style="color:var(--hangul)">한</strong></p>
+
+    <div class="chart-section">
+      <h3>Consonants (selected)</h3>
+      <div class="jamo-grid" id="consGrid"></div>
+    </div>
+    <div class="chart-section">
+      <h3>Vowels (selected)</h3>
+      <div class="jamo-grid" id="vowelGrid"></div>
+    </div>
+    <div class="chart-section">
+      <h3>Build a syllable</h3>
+      <div class="build-demo">
+        <div>ㄱ (g/k) + ㅏ (a) → <strong>가</strong></div>
+        <div>ㅇ (silent onset) + ㅗ (o) → <strong>오</strong></div>
+        <div>ㅁ (m) + ㅣ (i) + ㄴ (n) → <strong>민</strong></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <span>Field Middle · Heritage Day · screen only (nothing to take home)</span>
+  <span>Offline · works in Chrome</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ========== Hangul composition ========== */
+  var CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  var JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+  var JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+  function compose(cho, jung, jong) {
+    var ci = CHO.indexOf(cho);
+    var ji = JUNG.indexOf(jung);
+    var ki = JONG.indexOf(jong || '');
+    if (ci < 0 || ji < 0 || ki < 0) return '?';
+    return String.fromCharCode(0xAC00 + ci * 588 + ji * 28 + ki);
+  }
+
+  /* ========== Exception dictionary (common classmate + family names) ========== */
+  var EXCEPTIONS = {
+    eric:'에릭', erik:'에릭', owen:'오웬', mia:'미아', noah:'노아',
+    sofia:'소피아', sophia:'소피아', stella:'스텔라', bea:'베아', thais:'타이스',
+    thai:'타이', emma:'엠마', olivia:'올리비아', ava:'에이바', isabella:'이사벨라',
+    charlotte:'샬럿', amelia:'아멜리아', harper:'하퍼', evelyn:'에블린',
+    abigail:'애비게일', emily:'에밀리', elizabeth:'엘리자베스', mila:'밀라',
+    ella:'엘라', avery:'에이버리', scarlett:'스칼렛', eleanor:'엘리너',
+    madison:'매디슨', layla:'레일라', penelope:'페넬로페', aria:'아리아',
+    chloe:'클로이', grace:'그레이스', ellie:'엘리', nora:'노라', riley:'라일리',
+    zoey:'조이', zoe:'조이', lily:'릴리', luna:'루나', hazel:'헤이즐',
+    violet:'바이올렛', aurora:'오로라', savannah:'사바나', audrey:'오드레이',
+    brooklyn:'브루클린', bella:'벨라', claire:'클레어', skylar:'스카일러',
+    lucy:'루시', paisley:'페이즐리', everly:'에벌리', anna:'안나',
+    caroline:'캐롤라인', nova:'노바', genesis:'제네시스', aaliyah:'알리야',
+    kennedy:'케네디', kinsley:'킨슬리', allison:'앨리슨', maya:'마야',
+    willow:'윌로우', naomi:'나오미', elena:'엘레나', sarah:'사라',
+    ariana:'아리아나', gabriella:'가브리엘라', alice:'앨리스', madelyn:'매덜린',
+    cora:'코라', ruby:'루비', eva:'에바', serenity:'세레니티', autumn:'어텀',
+    adeline:'애덜라인', hailey:'헤일리', gianna:'지아나', valentina:'발렌티나',
+    isla:'아일라', eliana:'엘리아나', quinn:'퀸', nevaeh:'네바에', ivy:'아이비',
+    sadie:'새디', piper:'파이퍼', lydia:'리디아', alexa:'알렉사',
+    josephine:'조세핀', emery:'에머리', julia:'줄리아', delilah:'딜라일라',
+    arianna:'아리아나', vivian:'비비안', kaylee:'케일리', sophie:'소피',
+    brielle:'브리엘', madeline:'매들린', peyton:'페이튼',
+    liam:'리암', oliver:'올리버', james:'제임스', elijah:'엘리야',
+    william:'윌리엄', henry:'헨리', lucas:'루카스', benjamin:'벤자민',
+    theodore:'시어도어', mateo:'마테오', levi:'리바이', sebastian:'세바스찬',
+    daniel:'다니엘', jack:'잭', michael:'마이클', alexander:'알렉산더',
+    asher:'애셔', samuel:'사무엘', ethan:'이선', leo:'레오', jackson:'잭슨',
+    mason:'메이슨', ezra:'에즈라', john:'존', hudson:'허드슨', luca:'루카',
+    aiden:'에이든', ayden:'에이든', joseph:'조셉', david:'데이비드',
+    carter:'카터', julian:'줄리안', luke:'루크', grayson:'그레이슨',
+    matthew:'매튜', thomas:'토마스', maverick:'매버릭', dylan:'딜런',
+    isaac:'아이작', jacob:'제이콥', elias:'엘리아스', logan:'로건',
+    adrian:'에이드리언', jayden:'제이든', theo:'테오', gabriel:'가브리엘',
+    roman:'로만', anthony:'앤서니', jaxon:'잭슨', austin:'오스틴',
+    cameron:'캐머런', nolan:'놀란', cooper:'쿠퍼', xavier:'자비에르',
+    wesley:'웨슬리', wes:'웨스', kai:'카이', christian:'크리스천',
+    bob:'밥', robert:'로버트', chris:'크리스', alex:'알렉스', sam:'샘',
+    max:'맥스', nick:'닉', nate:'네이트', ben:'벤', tom:'톰', tim:'팀',
+    dan:'댄', dave:'데이브', mike:'마이크', steve:'스티브', kevin:'케빈',
+    brian:'브라이언', ryan:'라이언', jason:'제이슨', justin:'저스틴',
+    tyler:'타일러', brandon:'브랜든', kyle:'카일', andrew:'앤드류',
+    joshua:'조슈아', nathan:'네이선', zach:'재크', zachary:'재커리',
+    caleb:'칼렙', connor:'코너', hunter:'헌터', parker:'파커',
+    colton:'콜튼', landon:'랜던', jordan:'조던', jonathan:'조나단',
+    nicholas:'니콜라스', adam:'애덤', ian:'이안', evan:'에반',
+    gavin:'개빈', blake:'블레이크', chase:'체이스', cole:'콜',
+    dean:'딘', drew:'드루', finn:'핀', grant:'그랜트', jake:'제이크',
+    jude:'주드', miles:'마일스', reid:'리드', seth:'세스', troy:'트로이',
+    wade:'웨이드', zane:'제인', amy:'에이미', ann:'앤', beth:'베스',
+    cara:'카라', dana:'데이나', erin:'에린', faye:'페이', gina:'지나',
+    hope:'호프', iris:'아이리스', jade:'제이드', kate:'케이트',
+    lisa:'리사', mary:'메리', nina:'니나', rose:'로즈', sue:'수',
+    tina:'티나', wendy:'웬디', zara:'자라',
+    phoebe:'피비', graham:'그레이엄', shawn:'숀', sean:'션', shaun:'숀',
+    jane:'제인', mary:'메리', clara:'클라라', otto:'오토', gus:'거스', rex:'렉스',
+    bruno:'브루노', hank:'행크', uma:'우마', kay:'케이', jo:'조', bo:'보',
+    bahn:'반', michelle:'미셸', jennifer:'제니퍼', jessica:'제시카',
+    ashley:'애슐리', amanda:'아만다', melissa:'멜리사', nicole:'니콜',
+    stephanie:'스테파니', rebecca:'레베카', laura:'로라', heather:'헤더',
+    rachel:'레이첼', lauren:'로렌', kelly:'켈리', christina:'크리스티나',
+    samantha:'사만다', deborah:'데보라', christine:'크리스틴',
+    victoria:'빅토리아', maria:'마리아', heather:'헤더',
+    peter:'피터', paul:'폴', mark:'마크', george:'조지', charles:'찰스',
+    steven:'스티븐', edward:'에드워드', kenneth:'케네스', ronald:'로널드',
+    timothy:'티모시', jason:'제이슨', jeffrey:'제프리', ryan:'라이언',
+    jacob:'제이콥', gary:'개리', nicholas:'니콜라스', eric:'에릭',
+    jonathan:'조나단', stephen:'스티븐', larry:'래리', justin:'저스틴',
+    scott:'스콧', brandon:'브랜든', benjamin:'벤자민', samuel:'사무엘',
+    raymond:'레이먼드', gregory:'그레고리', frank:'프랭크',
+    alexander:'알렉산더', patrick:'패트릭', jack:'잭', dennis:'데니스',
+    jerry:'제리', tyler:'타일러', aaron:'애런', jose:'호세',
+    henry:'헨리', adam:'애덤', douglas:'더글러스', nathan:'네이선',
+    zachary:'재커리', kyle:'카일', noah:'노아',
+    // short / demo
+    mo:'모', ja:'자', han:'한', gul:'글', min:'민', soo:'수',
+    jin:'진', yun:'윤', ji:'지', ho:'호'
+  };
+
+  function normalize(name) {
+    return String(name || '').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z\-\s]/g, '');
+  }
+
+  function transliterate(name) {
+    var key = normalize(name);
+    if (!key) return '';
+    if (EXCEPTIONS[key]) return EXCEPTIONS[key];
+    if (/[\s\-]/.test(key)) {
+      return key.split(/[\s\-]+/).filter(Boolean).map(transliterate).join(' ');
+    }
+    return ruleBased(key);
+  }
+
+  function ruleBased(s) {
+    var units = scanUnits(s);
+    var jamos = unitsToJamos(units);
+    return packSyllables(jamos);
+  }
+
+  function scanUnits(s) {
+    var MULTI = [
+      'ough','augh','eigh','tion','sion',
+      'sch','tch','dge','chr',
+      'ch','sh','th','ph','gh','ng','wh','ck','qu','kn','wr','mb','gn',
+      'cl','cr','bl','br','fl','fr','gl','gr','pl','pr','tr','dr','sl','sm','sn','sp','st','sk','sw','tw',
+      'ee','ea','oo','ou','ow','oi','oy','ai','ay','au','aw','ei','ey','ie','ue','ui','oa','eu'
+    ];
+    var units = [];
+    var i = 0;
+    while (i < s.length) {
+      var hit = null;
+      for (var m = 0; m < MULTI.length; m++) {
+        if (s.indexOf(MULTI[m], i) === i) { hit = MULTI[m]; break; }
+      }
+      if (hit) { units.push(hit); i += hit.length; }
+      else { units.push(s.charAt(i)); i++; }
+    }
+    return units;
+  }
+
+  function isVowelUnit(u) {
+    return /^(a|e|i|o|u|y|ee|ea|oo|ou|ow|oi|oy|ai|ay|au|aw|ei|ey|ie|ue|ui|oa|eu|ough|augh|eigh)$/.test(u);
+  }
+
+  function unitsToJamos(units) {
+    var out = [];
+    function pushC(j) { out.push({k:'C', j:j}); }
+    function pushV(j) { out.push({k:'V', j:j}); }
+
+    for (var i = 0; i < units.length; i++) {
+      var u = units[i];
+      var next = units[i+1];
+      var prev = units[i-1];
+      var atEnd = (i === units.length - 1);
+      var nextIsV = next && isVowelUnit(next);
+
+      switch (u) {
+        case 'ee': case 'ea': pushV('ㅣ'); break;
+        case 'oo': pushV('ㅜ'); break;
+        case 'ou':
+          pushV('ㅏ'); pushC('ㅇ'); pushV('ㅜ'); break;
+        case 'ow':
+          if (atEnd) pushV('ㅗ');
+          else { pushV('ㅏ'); pushC('ㅇ'); pushV('ㅜ'); }
+          break;
+        case 'oi': case 'oy':
+          pushV('ㅗ'); pushC('ㅇ'); pushV('ㅣ'); break;
+        case 'ai': case 'ay':
+          pushV('ㅔ'); pushC('ㅇ'); pushV('ㅣ'); break;
+        case 'au': case 'aw': pushV('ㅗ'); break;
+        case 'ei': case 'ey':
+          pushV('ㅔ'); pushC('ㅇ'); pushV('ㅣ'); break;
+        case 'ie': pushV('ㅣ'); break;
+        case 'ue': pushV('ㅜ'); break;
+        case 'ui': pushV('ㅟ'); break;
+        case 'oa': pushV('ㅗ'); break;
+        case 'eu': pushV('ㅠ'); break;
+        case 'ough': case 'augh': pushV('ㅗ'); break;
+        case 'eigh':
+          pushV('ㅔ'); pushC('ㅇ'); pushV('ㅣ'); break;
+
+        case 'a': pushV('ㅏ'); break;
+        case 'e':
+          if (atEnd && units.length > 1) break; // silent e
+          pushV('ㅔ'); break;
+        case 'i': pushV('ㅣ'); break;
+        case 'o': pushV('ㅗ'); break;
+        case 'u':
+          if (next && !isVowelUnit(next) && units[i+2] && !isVowelUnit(units[i+2])) pushV('ㅓ');
+          else pushV('ㅜ');
+          break;
+        case 'y':
+          if (!prev || isVowelUnit(prev)) {
+            if (nextIsV) {
+              var ymap = {a:'ㅑ', e:'ㅖ', i:'ㅣ', o:'ㅛ', u:'ㅠ', ee:'ㅣ', ea:'ㅣ', oo:'ㅠ', ai:'ㅖ', ay:'ㅖ', ei:'ㅖ', ey:'ㅖ'};
+              if (ymap[next]) { pushC('ㅇ'); pushV(ymap[next]); i++; }
+              else { pushC('ㅇ'); pushV('ㅣ'); }
+            } else {
+              pushV('ㅣ');
+            }
+          } else {
+            pushV('ㅣ');
+          }
+          break;
+
+        case 'cl': pushC('ㅋ'); pushC('ㄹ'); break;
+        case 'cr': pushC('ㅋ'); pushC('ㄹ'); break;
+        case 'bl': pushC('ㅂ'); pushC('ㄹ'); break;
+        case 'br': pushC('ㅂ'); pushC('ㄹ'); break;
+        case 'fl': pushC('ㅍ'); pushC('ㄹ'); break;
+        case 'fr': pushC('ㅍ'); pushC('ㄹ'); break;
+        case 'gl': pushC('ㄱ'); pushC('ㄹ'); break;
+        case 'gr': pushC('ㄱ'); pushC('ㄹ'); break;
+        case 'pl': pushC('ㅍ'); pushC('ㄹ'); break;
+        case 'pr': pushC('ㅍ'); pushC('ㄹ'); break;
+        case 'tr': pushC('ㅌ'); pushC('ㄹ'); break;
+        case 'dr': pushC('ㄷ'); pushC('ㄹ'); break;
+        case 'sl': pushC('ㅅ'); pushC('ㄹ'); break;
+        case 'sm': pushC('ㅅ'); pushC('ㅁ'); break;
+        case 'sn': pushC('ㅅ'); pushC('ㄴ'); break;
+        case 'sp': pushC('ㅅ'); pushC('ㅍ'); break;
+        case 'st': pushC('ㅅ'); pushC('ㅌ'); break;
+        case 'sk': pushC('ㅅ'); pushC('ㅋ'); break;
+        case 'sw': pushC('ㅅ'); pushV('ㅜ'); break;
+        case 'tw': pushC('ㅌ'); pushV('ㅜ'); break;
+        case 'ch': pushC('ㅊ'); break;
+        case 'sh':
+          if (nextIsV) {
+            var smap = {a:'ㅑ', e:'ㅖ', i:'ㅣ', o:'ㅛ', u:'ㅠ', ee:'ㅣ', ea:'ㅣ', oo:'ㅠ', ai:'ㅖ', ay:'ㅖ'};
+            if (smap[next]) { pushC('ㅅ'); pushV(smap[next]); i++; }
+            else pushC('ㅅ');
+          } else pushC('ㅅ');
+          break;
+        case 'th': pushC('ㅌ'); break;
+        case 'ph': pushC('ㅍ'); break;
+        case 'gh': break;
+        case 'ng': pushC('ㅇ'); break;
+        case 'wh':
+          if (nextIsV) {
+            var wmap = {a:'ㅘ', e:'ㅞ', i:'ㅟ', o:'ㅝ', u:'ㅜ', ee:'ㅟ', ea:'ㅟ', ai:'ㅞ', ay:'ㅞ', y:'ㅟ'};
+            if (wmap[next]) { pushC('ㅇ'); pushV(wmap[next]); i++; }
+            else { pushC('ㅇ'); pushV('ㅜ'); }
+          } else { pushC('ㅇ'); pushV('ㅜ'); }
+          break;
+        case 'ck': pushC('ㅋ'); break;
+        case 'qu': pushC('ㅋ'); pushV('ㅜ'); break;
+        case 'sch': pushC('ㅅ'); break;
+        case 'tch': pushC('ㅊ'); break;
+        case 'dge': pushC('ㅈ'); break;
+        case 'chr': pushC('ㅋ'); pushC('ㄹ'); break;
+        case 'kn': pushC('ㄴ'); break;
+        case 'wr': pushC('ㄹ'); break;
+        case 'mb': pushC('ㅁ'); break;
+        case 'gn': pushC('ㄴ'); break;
+
+        case 'b': pushC('ㅂ'); break;
+        case 'c':
+          if (next === 'e' || next === 'i' || next === 'y' || next === 'ee' || next === 'ea' || next === 'ei' || next === 'ey' || next === 'ie')
+            pushC('ㅅ');
+          else pushC('ㅋ');
+          break;
+        case 'd': pushC('ㄷ'); break;
+        case 'f': pushC('ㅍ'); break;
+        case 'g':
+          if (next === 'e' || next === 'i' || next === 'y' || next === 'ee' || next === 'ea' || next === 'ei' || next === 'ey')
+            pushC('ㅈ');
+          else pushC('ㄱ');
+          break;
+        case 'h': pushC('ㅎ'); break;
+        case 'j': pushC('ㅈ'); break;
+        case 'k': pushC('ㅋ'); break;
+        case 'l': pushC('ㄹ'); break;
+        case 'm': pushC('ㅁ'); break;
+        case 'n': pushC('ㄴ'); break;
+        case 'p': pushC('ㅍ'); break;
+        case 'q': pushC('ㅋ'); break;
+        case 'r': pushC('ㄹ'); break;
+        case 's': pushC('ㅅ'); break;
+        case 't': pushC('ㅌ'); break;
+        case 'v': pushC('ㅂ'); break;
+        case 'w':
+          if (nextIsV) {
+            var wmap2 = {a:'ㅘ', e:'ㅞ', i:'ㅟ', o:'ㅝ', u:'ㅜ', ee:'ㅟ', ea:'ㅟ', ai:'ㅞ', ay:'ㅞ', y:'ㅟ', oo:'ㅜ'};
+            if (wmap2[next]) { pushC('ㅇ'); pushV(wmap2[next]); i++; }
+            else { pushC('ㅇ'); pushV('ㅜ'); }
+          } else { pushC('ㅇ'); pushV('ㅜ'); }
+          break;
+        case 'x': pushC('ㅋ'); pushC('ㅅ'); break;
+        case 'z': pushC('ㅈ'); break;
+        default: break;
+      }
+    }
+    return out;
+  }
+
+  function packSyllables(jamos) {
+    if (!jamos.length) return '';
+    var BATCHIM = {ㄱ:1,ㄲ:1,ㄴ:1,ㄷ:1,ㄹ:1,ㅁ:1,ㅂ:1,ㅅ:1,ㅆ:1,ㅇ:1,ㅈ:1,ㅊ:1,ㅋ:1,ㅌ:1,ㅍ:1,ㅎ:1};
+    var result = [];
+    var i = 0;
+    while (i < jamos.length) {
+      var cho = 'ㅇ', jung = 'ㅡ', jong = '';
+      if (jamos[i].k === 'C') { cho = jamos[i].j; i++; }
+      if (i < jamos.length && jamos[i].k === 'V') { jung = jamos[i].j; i++; }
+      else { jung = 'ㅡ'; }
+      if (i < jamos.length && jamos[i].k === 'C') {
+        var hasFollowingVowel = (i + 1 < jamos.length && jamos[i + 1].k === 'V');
+        if (!hasFollowingVowel && BATCHIM[jamos[i].j]) {
+          jong = jamos[i].j;
+          i++;
+        }
+      }
+      result.push(compose(cho, jung, jong));
+    }
+    return result.join('');
+  }
+
+  /* ========== UI ========== */
+  var input = document.getElementById('nameInput');
+  var hangulOut = document.getElementById('hangulOut');
+  var latinEcho = document.getElementById('latinEcho');
+  var main = document.getElementById('main');
+  var btnChart = document.getElementById('btnChart');
+  var btnGo = document.getElementById('btnGo');
+  var btnClear = document.getElementById('btnClear');
+
+  function update() {
+    var raw = input.value;
+    var hangul = transliterate(raw);
+    hangulOut.textContent = hangul;
+    var trimmed = raw.trim();
+    latinEcho.textContent = hangul && trimmed ? (trimmed + ' → ' + hangul) : '';
+  }
+
+  function clearAll() {
+    input.value = '';
+    hangulOut.textContent = '';
+    latinEcho.textContent = '';
+    input.focus();
+  }
+
+  function setDemo(name) {
+    input.value = name;
+    update();
+    input.focus();
+  }
+
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      update();
+    } else if (e.key === 'Escape') {
+      clearAll();
+    }
+  });
+  btnGo.addEventListener('click', function () { update(); input.focus(); });
+  btnClear.addEventListener('click', clearAll);
+
+  document.querySelectorAll('.chip[data-name]').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      setDemo(chip.getAttribute('data-name'));
+    });
+  });
+
+  btnChart.addEventListener('click', function () {
+    var on = main.classList.toggle('with-chart');
+    btnChart.classList.toggle('toggle-on', on);
+    btnChart.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btnChart.textContent = on ? 'Hide chart' : 'Show chart';
+  });
+
+  /* Chart data */
+  var consonants = [
+    ['ㄱ','g/k'],['ㄴ','n'],['ㄷ','d/t'],['ㄹ','r/l'],['ㅁ','m'],
+    ['ㅂ','b/p'],['ㅅ','s'],['ㅇ','∅/ng'],['ㅈ','j'],['ㅊ','ch'],
+    ['ㅋ','k'],['ㅌ','t'],['ㅍ','p'],['ㅎ','h']
+  ];
+  var vowels = [
+    ['ㅏ','a'],['ㅑ','ya'],['ㅓ','eo'],['ㅕ','yeo'],['ㅗ','o'],
+    ['ㅛ','yo'],['ㅜ','u'],['ㅠ','yu'],['ㅡ','eu'],['ㅣ','i'],
+    ['ㅐ','ae'],['ㅔ','e'],['ㅘ','wa'],['ㅝ','wo'],['ㅟ','wi']
+  ];
+
+  function fillGrid(el, items) {
+    items.forEach(function (pair) {
+      var div = document.createElement('div');
+      div.className = 'jamo';
+      div.innerHTML = '<span class="big">' + pair[0] + '</span><span class="rom">' + pair[1] + '</span>';
+      el.appendChild(div);
+    });
+  }
+  fillGrid(document.getElementById('consGrid'), consonants);
+  fillGrid(document.getElementById('vowelGrid'), vowels);
+
+  // Expose for headless testing
+  window.HangulNameLab = { transliterate: transliterate, compose: compose };
+
+  // Autofocus for projector setup
+  setTimeout(function () { input.focus(); }, 100);
+})();
+</script>
+</body>
+</html>
